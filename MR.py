@@ -1,4 +1,5 @@
 from random import randrange, getrandbits
+import math
 
 def is_prime(n, k=128):
     """ Test if a number is prime
@@ -58,3 +59,42 @@ def generate_prime_number(length=26):
         p = generate_prime_candidate(length)
     return p
 # print(generate_prime_number())
+
+
+def find_prime_factors(num):
+    pf = set([])
+    while(num % 2 == 0):
+        pf.add(2)
+        num //=2
+
+    for i in range(3, int(math.sqrt(num))+1):
+        while num % i == 0:
+            pf.add(i)
+            num //=i
+
+    if num > 2:
+        pf.add(num)
+
+    # print(num, pf)
+    return pf;
+
+def get_Prime_PR():
+    prime = generate_prime_number()
+    phi = prime - 1
+    pfs = find_prime_factors(phi)
+
+    for i in range(2, phi+1):
+        flag = False
+        for fact in pfs:
+            if pow(i, int(phi/fact), prime) == 1:
+                flag = True
+                break
+        if flag == False:
+            # print("Primitive Root is " + str(i))
+            return (prime, i)
+            # break
+    return get_Prime_PR()
+
+
+
+
