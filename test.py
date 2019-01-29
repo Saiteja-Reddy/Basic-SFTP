@@ -17,7 +17,7 @@ B_q = A_q
 Yb = Ya
 B_alpha = A_alpha
 Xb = randrange(2, B_q - 2)
-print("B: select Xb " + str(Xb))
+print("B: select Xb " + strg(Xb))
 
 Yb = pow(B_alpha, Xb, B_q) # public
 print("B: Yb " + str(Yb))
