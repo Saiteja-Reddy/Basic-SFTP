@@ -13,6 +13,14 @@ import hashlib
 
 pass_file = {}
   
+def check_creds(id, password):
+    global pass_file
+    password = password + str(pass_file[id]['salt']) + str(pass_file[id]['prime'])
+    password = hashlib.sha1(password.encode()).hexdigest()
+    if pass_file[id]['password'] == password:
+        return 1;
+    return -1;
+
 # thread fuction 
 def threaded(conn): 
     DH_share_pack = conn.recv(calcsize('iii'))
@@ -54,7 +62,23 @@ def threaded(conn):
                 print(pass_file)
                 msg = create_message(opcode = LOGINREPLY, status = 1)
                 print("Sent LOGINREPLY Message", unpack_message(msg))
-                conn.sendall(msg)                
+                conn.sendall(msg) 
+
+        elif msg['opcode'] == AUTHREQUEST:            
+            ID = decrypt(msg['ID'], key)
+            password = decrypt(msg['password'], key)
+            print(ID, password)
+            #check in table
+            if ID not in pass_file.keys():
+                msg = create_message(opcode = AUTHREPLY, status = 0)
+                print("Sent AUTHREPLY Message", unpack_message(msg))
+                conn.sendall(msg) 
+            else:
+                status = check_creds(ID, password)
+                msg = create_message(opcode = AUTHREPLY, status = status)
+                print("Sent AUTHREPLY Message", unpack_message(msg))
+                conn.sendall(msg) 
+
 
     conn.close() 
 

@@ -43,6 +43,8 @@ while True:
 		user = encrypt(user, key)
 		password = encrypt(password, key)
 		msg = create_message(opcode = LOGINCREAT, ID=user, password = password)
+		if(msg == "Err"):
+			continue
 		print("Sent LOGINCREAT Message", unpack_message(msg))
 		s.sendall(msg)
 		msg = s.recv(calcsize('iii10s10si10si10si'))
@@ -55,7 +57,30 @@ while True:
 			print('Created new user login - ' + str(decrypt(user, key)))
 			print('You can now login with this username.')
 
-
+	elif action == "login":
+		if logged_user != "":
+			print("Log out first before new login!!")
+			continue
+		user = input('Enter ID of user: ')
+		password = input('Enter password of user: ')
+		user = encrypt(user, key)
+		password = encrypt(password, key)
+		msg = create_message(opcode = AUTHREQUEST, ID=user, password = password)
+		if(msg == "Err"):
+			continue
+		print("Sent AUTHREQUEST Message", unpack_message(msg))
+		s.sendall(msg)
+		msg = s.recv(calcsize('iii10s10si10si10si'))
+		msg = unpack_message(msg) 						
+		print("Received AUTHREPLY from Server")
+		if msg['status'] == 0:
+			print('No such user found - ' + str(decrypt(user, key)))
+			print('Create a new login.')
+		elif msg['status'] == -1:
+			print('Wrong password entered for user - ' + str(decrypt(user, key)))			
+		else:
+			print('Successfully Logged in as - ' + str(decrypt(user, key)))
+			logged_user = decrypt(user, key)
 
 
 	elif action == "quit" or action == "exit":
