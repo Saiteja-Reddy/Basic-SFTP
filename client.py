@@ -47,7 +47,7 @@ while True:
 			continue
 		print("Sent LOGINCREAT Message", unpack_message(msg))
 		s.sendall(msg)
-		msg = s.recv(calcsize('iii10s10si10si10si'))
+		msg = s.recv(calcsize('iii10s10si10si80si'))
 		msg = unpack_message(msg)        
 		print("Received LOGINREPLY from Server")
 		if msg['status'] == 0:
@@ -70,7 +70,7 @@ while True:
 			continue
 		print("Sent AUTHREQUEST Message", unpack_message(msg))
 		s.sendall(msg)
-		msg = s.recv(calcsize('iii10s10si10si10si'))
+		msg = s.recv(calcsize('iii10s10si10si80si'))
 		msg = unpack_message(msg) 						
 		print("Received AUTHREPLY from Server")
 		if msg['status'] == 0:
@@ -82,6 +82,34 @@ while True:
 			print('Successfully Logged in as - ' + str(decrypt(user, key)))
 			logged_user = decrypt(user, key)
 
+	elif action == "getfile":
+		if logged_user == "":
+			print("Log in first before getfile!!")
+			continue
+		filename = input('Enter file path on server: ')
+		user = encrypt(logged_user, key)
+		msg = create_message(opcode = SERVICEREQUEST, ID=user, file = filename)
+		if(msg == "Err"):
+			continue
+		print("Sent SERVICEREQUEST Message", unpack_message(msg))
+		s.sendall(msg)
+		msg = s.recv(calcsize('iii10s10si10si80si'))
+		msg = unpack_message(msg)
+		print(msg)						
+		if(msg['status'] == -1):
+			print("File doesn't exist on server!!")
+			continue
+		else:
+			f = open(msg['file'], 'w')
+			f.write(msg['buf'])
+			while msg['status'] == 0:
+				msg = s.recv(calcsize('iii10s10si10si80si'))
+				msg = unpack_message(msg)
+				f.write(msg['buf'])
+				print(msg)
+			f.close()
+			print("Done Transferring File from server!!!")
+
 
 	elif action == "quit" or action == "exit":
 		exit()
@@ -92,11 +120,4 @@ while True:
 
 	else:
 		print("Choose one among the below actions:")
-		print("""1. newlogin \n2. quit/exit\n3. logout\n""")
-
-
-# msg = create_message(file="teja.txt", dummy = 2, opcode = 12, buf = "buf", ID="mysself", q = 12, password = "asdasdasQ", status = 1)
-
-
-
-# print('Received', repr(data))
+		print("""1. newlogin \n2. quit/exit\n3. login\n4. logout\n""")

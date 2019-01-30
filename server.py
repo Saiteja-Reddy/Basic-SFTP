@@ -9,7 +9,8 @@ from message import *
 from caesar_cipher import *
 from constants import *
 import hashlib
-
+from pathlib import Path
+import os
 
 pass_file = {}
   
@@ -40,7 +41,7 @@ def threaded(conn):
     print("Done Diffie-Hellmann!!\n")
 
     while True:
-        msg = conn.recv(calcsize('iii10s10si10si10si'))
+        msg = conn.recv(calcsize('iii10s10si10si80si'))
         msg = unpack_message(msg)
         print("Received from client: ", msg)
 
@@ -78,6 +79,30 @@ def threaded(conn):
                 msg = create_message(opcode = AUTHREPLY, status = status)
                 print("Sent AUTHREPLY Message", unpack_message(msg))
                 conn.sendall(msg) 
+
+        elif msg['opcode'] == SERVICEREQUEST:            
+            ID = decrypt(msg['ID'], key)
+            file = msg['file']
+            filename = Path(file).name
+            print(ID, file)
+
+            if not os.path.isfile(file):            
+                msg = create_message(opcode = SERVICEDONE,  status = -1)
+                print("Sent SERVICEDONE Message", unpack_message(msg))
+                conn.sendall(msg)   
+            else:
+                f = open(file)
+                print("Transferring file to client!!")
+                while True:
+                    c = f.read(10)
+                    if not c:
+                        break
+                    msg = create_message(opcode = SERVICEDONE, file = filename, buf = c, status = 0)
+                    conn.sendall(msg)
+                msg = create_message(opcode = SERVICEDONE, file = filename, status = 1)
+                conn.sendall(msg)
+                print("Done Transferring File to client!!!")
+
 
 
     conn.close() 

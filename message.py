@@ -7,7 +7,7 @@ def convertIntToIp(ipInt):
 	return '.'.join([str(int(ipHexField, 16)) for ipHexField in (map(''.join, zip(*[iter(str(hex(ipInt))[2:].zfill(8))]*2)))])
 
 def unpack_message(packet):
-	opcode, s_addr, d_addr, buf, ID, q, password, status, file, dummy = unpack('iii10s10si10si10si', packet)
+	opcode, s_addr, d_addr, buf, ID, q, password, status, file, dummy = unpack('iii10s10si10si80si', packet)
 	out = {}
 	out['opcode'] = opcode
 	out['s_addr'] = s_addr
@@ -45,12 +45,12 @@ def create_message(opcode = 10,
 		print("Choose smaller password!! (<= 10 chars)")
 		return "Err";	
 
-	if len(file) > 10:
-		print("Choose smaller file!! (<= 10 chars)")
+	if len(file) > 80:
+		print("Choose smaller file path!! (<= 10 chars)")
 		return "Err";		
 
 	
-	packet = pack('iii10s10si10si10si', opcode, s_addr, d_addr, buf.encode("ascii")
+	packet = pack('iii10s10si10si80si', opcode, s_addr, d_addr, buf.encode("ascii")
 		, ID.encode("ascii"), q, password.encode("ascii"), status, file.encode("ascii"), dummy)
 
 	return packet
