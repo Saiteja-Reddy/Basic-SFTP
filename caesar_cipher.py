@@ -2,6 +2,10 @@ def get_encoding():
 	dict = {}
 	r_dict = {}
 
+	dict[' '] = 00
+	r_dict[0] = ' '
+
+
 	for i in range(65, 65 + 26):
 		dict[chr(i)] =  i-64
 		r_dict[i-64] =  chr(i)
@@ -35,11 +39,11 @@ def encrypt(string, key):
 	out = ""
 	for char in string:
 		if char not in keys:
-			print("Err: Invalid character")
+			# print("Err: Invalid character")
 			return -1
 		else:
 			now = dict[char]
-			fin = ((now + key + 1) % 67)
+			fin = ((now + key) % 67)
 			# print(fin)
 			out += r_dict[fin]
 	return out
@@ -51,20 +55,20 @@ def decrypt(string, key):
 	out = ""
 	for char in string:
 		if char not in keys:
-			print("Err: Invalid character")
+			# print("Err: Invalid character")
 			return -1
 		else:
 			now = dict[char]
-			fin = ((now - key - 1) % 67)
+			fin = ((now - key) % 67)
 			out += r_dict[fin%67]
 	return out
 
 
-string = "Hello.World!"
-key = 112
+# string = "Hello .World!"
+# key = 112
 
-enc = encrypt(string, key)
-print("encrypted: ", enc)
+# enc = encrypt(string, key)
+# print("encrypted: ", enc)
 
-print(decrypt(enc, key))
+# print(decrypt(enc, key))
 

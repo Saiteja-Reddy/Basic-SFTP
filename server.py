@@ -2,31 +2,59 @@ import socket
 import threading 
 import time
 import MR
-from random import randrange
+from random import *
 from DH import *
 from struct import *
+from message import *
+from caesar_cipher import *
+from constants import *
+import hashlib
+
+
+pass_file = {}
   
 # thread fuction 
 def threaded(conn): 
     DH_share_pack = conn.recv(calcsize('iii'))
     DH_data = unpack_DH_share_pack(DH_share_pack)
-    print(DH_data)
     Xb = randrange(2, DH_data['prime'] - 2)
-    print("Selected Private Xb as " + str(Xb))
     
     Yb = pow(DH_data['alpha'], Xb, DH_data['prime']) # public to A
-    print("Yb is " + str(Yb)) 
 
     DH_reshare_pack = create_DH_reshare_pack(Yb)
-    print("Sending to Server", unpack_DH_reshare_pack(DH_reshare_pack))
     conn.sendall(DH_reshare_pack)
 
     prime = DH_data['prime']
     key = pow(DH_data['Ya'], Xb , prime)
 
     print("key is " + str(key))
+    print("prime is " + str(prime))
     print("Done Diffie-Hellmann!!\n")
 
+    while True:
+        msg = conn.recv(calcsize('iii10s10si10si10si'))
+        msg = unpack_message(msg)
+        print("Received from client: ", msg)
+
+        if msg['opcode'] == LOGINCREAT:
+            ID = decrypt(msg['ID'], key)
+            password = decrypt(msg['password'], key)
+            print(ID, password)
+            # add to table
+            salt = abs(getrandbits(6))
+            password = password + str(salt) + str(prime)
+            password = hashlib.sha1(password.encode()).hexdigest()
+
+            if ID in pass_file.keys():
+                msg = create_message(opcode = LOGINREPLY, status = 0)
+                print("Sent LOGINREPLY Message", unpack_message(msg))
+                conn.sendall(msg)
+            else:
+                pass_file[ID] = {'password' : password, 'prime' : prime, 'salt' : salt}
+                print(pass_file)
+                msg = create_message(opcode = LOGINREPLY, status = 1)
+                print("Sent LOGINREPLY Message", unpack_message(msg))
+                conn.sendall(msg)                
 
     conn.close() 
 
