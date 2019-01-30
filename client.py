@@ -119,5 +119,6 @@ while True:
 		print('User is now logged out.')
 
 	else:
+		print("No such action!!")
 		print("Choose one among the below actions:")
-		print("""1. newlogin \n2. quit/exit\n3. login\n4. logout\n""")
+		print("""1. login\n2. newlogin\n3. getfile\n4. logout\n5. quit/exit""")

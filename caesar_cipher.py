@@ -5,7 +5,6 @@ def get_encoding():
 	dict[' '] = 00
 	r_dict[0] = ' '
 
-
 	for i in range(65, 65 + 26):
 		dict[chr(i)] =  i-64
 		r_dict[i-64] =  chr(i)
