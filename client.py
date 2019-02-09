@@ -7,9 +7,15 @@ from message import *
 from caesar_cipher import *
 from constants import *
 
+def get_ip():
+	hostname = socket.gethostname()
+	return socket.gethostbyname(hostname)
 
 HOST = '127.0.0.1'  # The server's hostname or IP address
 PORT = 65432        # The port used by the server
+
+s_addr = get_ip()
+d_addr = HOST
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((HOST, PORT))
@@ -48,12 +54,12 @@ while True:
 		password = input('Enter password of user: ')
 		user = encrypt(user, key)
 		password = encrypt(password, key)
-		msg = create_message(opcode = LOGINCREAT, ID=user, password = password)
+		msg = create_message(s_addr=s_addr,d_addr=d_addr, opcode = LOGINCREAT, ID=user, password = password)
 		if(msg == "Err"):
 			continue
 		print("Sent LOGINCREAT Message", unpack_message(msg))
 		s.sendall(msg)
-		msg = s.recv(calcsize('iii10s10si10si80si'))
+		msg = s.recv(calcsize('iqq10s10si10si80si'))
 		msg = unpack_message(msg)        
 		print("Received LOGINREPLY from Server")
 		if msg['status'] == 0:
@@ -71,12 +77,12 @@ while True:
 		password = input('Enter password of user: ')
 		user = encrypt(user, key)
 		password = encrypt(password, key)
-		msg = create_message(opcode = AUTHREQUEST, ID=user, password = password)
+		msg = create_message(s_addr=s_addr,d_addr=d_addr, opcode = AUTHREQUEST, ID=user, password = password)
 		if(msg == "Err"):
 			continue
 		print("Sent AUTHREQUEST Message", unpack_message(msg))
 		s.sendall(msg)
-		msg = s.recv(calcsize('iii10s10si10si80si'))
+		msg = s.recv(calcsize('iqq10s10si10si80si'))
 		msg = unpack_message(msg) 						
 		print("Received AUTHREPLY from Server")
 		if msg['status'] == 0:
@@ -94,12 +100,12 @@ while True:
 			continue
 		filename = input('Enter file path on server: ')
 		user = encrypt(logged_user, key)
-		msg = create_message(opcode = SERVICEREQUEST, ID=user, file = filename)
+		msg = create_message(s_addr=s_addr,d_addr=d_addr, opcode = SERVICEREQUEST, ID=user, file = filename)
 		if(msg == "Err"):
 			continue
 		print("Sent SERVICEREQUEST Message", unpack_message(msg))
 		s.sendall(msg)
-		msg = s.recv(calcsize('iii10s10si10si80si'))
+		msg = s.recv(calcsize('iqq10s10si10si80si'))
 		msg = unpack_message(msg)
 		print(msg)						
 		if(msg['status'] == -1):
@@ -109,7 +115,7 @@ while True:
 			f = open(msg['file'], 'w')
 			f.write(msg['buf'])
 			while msg['status'] == 0:
-				msg = s.recv(calcsize('iii10s10si10si80si'))
+				msg = s.recv(calcsize('iqq10s10si10si80si'))
 				msg = unpack_message(msg)
 				f.write(msg['buf'])
 				print(msg)

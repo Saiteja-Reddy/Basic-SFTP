@@ -12,6 +12,10 @@ import hashlib
 from pathlib import Path
 import os
 
+def get_ip():
+    hostname = socket.gethostname()
+    return socket.gethostbyname(hostname)
+
 #password file dictionary on server
 pass_file = {}
 
@@ -25,7 +29,10 @@ def check_creds(id, password):
     return -1;
 
 # thread fuction for each client connnected
-def threaded(conn): 
+def threaded(conn, addr): 
+    s_addr = get_ip()
+    d_addr = addr[0]
+
     # receiving DH public (Ya, prime, alpha) from A
     DH_share_pack = conn.recv(calcsize('iii'))
     DH_data = unpack_DH_share_pack(DH_share_pack)
@@ -47,7 +54,7 @@ def threaded(conn):
     print("Done Diffie-Hellmann!!\n")
 
     while True:
-        msg = conn.recv(calcsize('iii10s10si10si80si'))
+        msg = conn.recv(calcsize('iqq10s10si10si80si'))
         msg = unpack_message(msg)
         print("Received from client: ", msg)
 
@@ -61,13 +68,13 @@ def threaded(conn):
             password = hashlib.sha1(password.encode()).hexdigest() #using sha-1 hash function
 
             if ID in pass_file.keys():
-                msg = create_message(opcode = LOGINREPLY, status = 0)
+                msg = create_message(s_addr=s_addr,d_addr=d_addr, opcode = LOGINREPLY, status = 0)
                 print("Sent LOGINREPLY Message", unpack_message(msg))
                 conn.sendall(msg)
             else:
                 pass_file[ID] = {'password' : password, 'prime' : prime, 'salt' : salt}
                 print(pass_file)
-                msg = create_message(opcode = LOGINREPLY, status = 1)
+                msg = create_message(s_addr=s_addr,d_addr=d_addr, opcode = LOGINREPLY, status = 1)
                 print("Sent LOGINREPLY Message", unpack_message(msg))
                 conn.sendall(msg) 
 
@@ -77,12 +84,12 @@ def threaded(conn):
             print(ID, password)
             #check in table
             if ID not in pass_file.keys():
-                msg = create_message(opcode = AUTHREPLY, status = 0)
+                msg = create_message(s_addr=s_addr,d_addr=d_addr, opcode = AUTHREPLY, status = 0)
                 print("Sent AUTHREPLY Message", unpack_message(msg))
                 conn.sendall(msg) 
             else:
                 status = check_creds(ID, password)
-                msg = create_message(opcode = AUTHREPLY, status = status)
+                msg = create_message(s_addr=s_addr,d_addr=d_addr, opcode = AUTHREPLY, status = status)
                 print("Sent AUTHREPLY Message", unpack_message(msg))
                 conn.sendall(msg) 
 
@@ -93,7 +100,7 @@ def threaded(conn):
             print(ID, file)
 
             if not os.path.isfile(file):            
-                msg = create_message(opcode = SERVICEDONE,  status = -1)
+                msg = create_message(s_addr=s_addr,d_addr=d_addr, opcode = SERVICEDONE,  status = -1)
                 print("Sent SERVICEDONE Message", unpack_message(msg))
                 conn.sendall(msg)   
             else:
@@ -103,9 +110,9 @@ def threaded(conn):
                     c = f.read(10) # 10 bits of file at a time to client
                     if not c:
                         break
-                    msg = create_message(opcode = SERVICEDONE, file = filename, buf = c, status = 0)
+                    msg = create_message(s_addr=s_addr,d_addr=d_addr, opcode = SERVICEDONE, file = filename, buf = c, status = 0)
                     conn.sendall(msg)
-                msg = create_message(opcode = SERVICEDONE, file = filename, status = 1)
+                msg = create_message(s_addr=s_addr,d_addr=d_addr, opcode = SERVICEDONE, file = filename, status = 1)
                 conn.sendall(msg)
                 print("Done Transferring File to client!!!")
 
@@ -122,6 +129,6 @@ s.listen()
 while True: 
     conn, addr = s.accept()
     print('Connected by', addr)
-    t = threading.Thread(target=threaded, args=(conn,))
+    t = threading.Thread(target=threaded, args=(conn,addr,))
     t.start() 
 s.close() 

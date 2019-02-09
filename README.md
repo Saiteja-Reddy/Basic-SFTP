@@ -2,7 +2,7 @@
 
 * Client 'A' and Server 'B' on first connect do a **Diffie-Hellman Key exchange**.
 * For the rest of the term of 'A', always used above established key for communications with 'B'.
-* The large primes for above DH Key Exchange are generated using the **Miller-Rabin Primimality Test**.
+* The large primes for above DH Key Exchange are generated using the **Miller-Rabin Primality Test**.
 * The client then provides a command line interface with four different commmands:
 	* **newlogin** - Create a newlogin takes input a username and password
 	* **login** - Login into server takes input a username and password

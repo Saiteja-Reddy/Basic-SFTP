@@ -9,11 +9,11 @@ def convertIntToIp(ipInt):
 
 # function to unpack the packet of fixed size with different parameters
 def unpack_message(packet):
-	opcode, s_addr, d_addr, buf, ID, q, password, status, file, dummy = unpack('iii10s10si10si80si', packet)
+	opcode, s_addr, d_addr, buf, ID, q, password, status, file, dummy = unpack('iqq10s10si10si80si', packet)
 	out = {}
 	out['opcode'] = opcode
-	out['s_addr'] = s_addr
-	out['d_addr'] = d_addr
+	out['s_addr'] = convertIntToIp(s_addr)
+	out['d_addr'] = convertIntToIp(d_addr)
 	out['buf'] = buf.decode("ascii").rstrip('\x00')
 	out['ID'] = ID.decode("ascii").rstrip('\x00')
 	out['q'] = q
@@ -25,8 +25,8 @@ def unpack_message(packet):
 
 # Create a Packet with input arguments 
 def create_message(opcode = 10,
-		s_addr = convertIpToInt("127.0.0.1"),
-		d_addr = convertIpToInt("127.0.0.1"),
+		s_addr = "127.0.0.1",
+		d_addr = "127.0.0.1",
 		buf = "",
 		ID = "",
 		q = -1,
@@ -35,6 +35,9 @@ def create_message(opcode = 10,
 		file = "",
 		dummy = -1
 	):
+
+	s_addr = convertIpToInt(s_addr)
+	d_addr = convertIpToInt(d_addr)
 
 	if len(buf) > 10:
 		print("Choose smaller message!! (<= 10 chars)")
@@ -53,7 +56,7 @@ def create_message(opcode = 10,
 		return "Err";		
 
 	
-	packet = pack('iii10s10si10si80si', opcode, s_addr, d_addr, buf.encode("ascii")
+	packet = pack('iqq10s10si10si80si', opcode, s_addr, d_addr, buf.encode("ascii")
 		, ID.encode("ascii"), q, password.encode("ascii"), status, file.encode("ascii"), dummy)
 
 	return packet
