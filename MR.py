@@ -2,14 +2,8 @@ from random import randrange, getrandbits
 import math
 
 def is_prime(n, k=128):
-    """ Test if a number is prime
-        Args:
-            n -- int -- the number to test
-            k -- int -- the number of tests to do
-        return True if n is prime
-    """
-    # Test if n is not even.
-    # But care, 2 is prime !
+    # Test if the prime candidate is indeed prime using Miller Rabin Test
+    # k number of times to run the MR test
     if n == 2 or n == 3:
         return True
     if n <= 1 or n % 2 == 0:
@@ -35,24 +29,16 @@ def is_prime(n, k=128):
                 return False
     return True
 
+# helper function to get random odd number bits as prime candidates
 def generate_prime_candidate(length):
-    """ Generate an odd integer randomly
-        Args:
-            length -- int -- the length of the number to generate, in bits
-        return a integer
-    """
     # generate random bits
     p = getrandbits(length)
     # apply a mask to set MSB and LSB to 1
     p |= (1 << length - 1) | 1
     return p
 
+# helper function to generate prime number
 def generate_prime_number(length=26):
-    """ Generate a prime
-        Args:
-            length -- int -- length of the prime to generate, in          bits
-        return a prime
-    """
     p = 4
     # keep generating while the primality test fail
     while not is_prime(p, 128):
@@ -60,7 +46,7 @@ def generate_prime_number(length=26):
     return p
 # print(generate_prime_number())
 
-
+# function to find prime factors of a number
 def find_prime_factors(num):
     pf = set([])
     while(num % 2 == 0):
@@ -78,11 +64,13 @@ def find_prime_factors(num):
     # print(num, pf)
     return pf;
 
+# get random print number function
 def get_Prime_PR():
     prime = generate_prime_number()
     phi = prime - 1
     pfs = find_prime_factors(phi)
 
+    # finding the primitive root of above prime number found
     for i in range(2, phi+1):
         flag = False
         for fact in pfs:
@@ -94,7 +82,4 @@ def get_Prime_PR():
             return (prime, i)
             # break
     return get_Prime_PR()
-
-
-
 

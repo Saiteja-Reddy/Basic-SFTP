@@ -12,8 +12,10 @@ import hashlib
 from pathlib import Path
 import os
 
+#password file dictionary on server
 pass_file = {}
-  
+
+# function to check if input ID and Password already in the pass_file var  
 def check_creds(id, password):
     global pass_file
     password = password + str(pass_file[id]['salt']) + str(pass_file[id]['prime'])
@@ -22,19 +24,23 @@ def check_creds(id, password):
         return 1;
     return -1;
 
-# thread fuction 
+# thread fuction for each client connnected
 def threaded(conn): 
+    # receiving DH public (Ya, prime, alpha) from A
     DH_share_pack = conn.recv(calcsize('iii'))
     DH_data = unpack_DH_share_pack(DH_share_pack)
-    Xb = randrange(2, DH_data['prime'] - 2)
-    
-    Yb = pow(DH_data['alpha'], Xb, DH_data['prime']) # public to A
+    print("Received from Client", DH_data)
 
+    # computing Yb from alpha and prime received from client 'A'
+    Xb = randrange(2, DH_data['prime'] - 2) # private to server 'B'
+    Yb = pow(DH_data['alpha'], Xb, DH_data['prime']) # public to client 'A'
+
+    # sharing Yb with client 'A'
     DH_reshare_pack = create_DH_reshare_pack(Yb)
     conn.sendall(DH_reshare_pack)
 
     prime = DH_data['prime']
-    key = pow(DH_data['Ya'], Xb , prime)
+    key = pow(DH_data['Ya'], Xb , prime) #computing the shared key with client
 
     print("key is " + str(key))
     print("prime is " + str(prime))
@@ -50,9 +56,9 @@ def threaded(conn):
             password = decrypt(msg['password'], key)
             print(ID, password)
             # add to table
-            salt = abs(getrandbits(6))
+            salt = abs(getrandbits(6)) #getting a random salt
             password = password + str(salt) + str(prime)
-            password = hashlib.sha1(password.encode()).hexdigest()
+            password = hashlib.sha1(password.encode()).hexdigest() #using sha-1 hash function
 
             if ID in pass_file.keys():
                 msg = create_message(opcode = LOGINREPLY, status = 0)
@@ -94,7 +100,7 @@ def threaded(conn):
                 f = open(file)
                 print("Transferring file to client!!")
                 while True:
-                    c = f.read(10)
+                    c = f.read(10) # 10 bits of file at a time to client
                     if not c:
                         break
                     msg = create_message(opcode = SERVICEDONE, file = filename, buf = c, status = 0)

@@ -14,16 +14,22 @@ PORT = 65432        # The port used by the server
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((HOST, PORT))
 
+#comuputing DH public (Ya, prime, alpha) for client A
 prime, alpha = MR.get_Prime_PR() # public
-Xa = randrange(2, prime - 2)
+Xa = randrange(2, prime - 2) #private to client A
 Ya = pow(alpha, Xa, prime) # public
 
+# DH public (Ya, prime, alpha) being shared with server B
 DH_share_pack = create_DH_share_pack(Ya, prime, alpha)
-
 s.sendall(DH_share_pack)
+print("Sending to server", unpack_DH_share_pack(DH_share_pack))
+
+# DH Yb from server B recevied for with client 'A'
 DH_reshare_pack = s.recv(calcsize('i'))
 DH_data = unpack_DH_reshare_pack(DH_reshare_pack)
+print("Received from server", DH_data)
 
+##computing the shared key
 key = pow(DH_data['Yb'], Xa , prime)
 print("key is " + str(key))
 print("prime is " + str(prime))

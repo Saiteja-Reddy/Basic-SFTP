@@ -1,5 +1,7 @@
 from struct import *
 
+#functions to create fixed size packed for Diffie Hellman Key Exchange
+
 def create_DH_share_pack(Ya, prime, alpha):
 	packet = pack('iii', Ya, prime, alpha)
 	return packet

@@ -1,3 +1,4 @@
+# function to get the Casesar Cipher Encoding dictionary
 def get_encoding():
 	dict = {}
 	r_dict = {}
@@ -31,6 +32,7 @@ def get_encoding():
 	# print(r_dict)
 	return (dict, r_dict)
 
+# encrypt the input string using the given key using Caesar Cipher
 def encrypt(string, key):
 	dict, r_dict = get_encoding()
 	keys = list(dict.keys())
@@ -47,6 +49,7 @@ def encrypt(string, key):
 			out += r_dict[fin]
 	return out
 
+# Decrypt the input string using the given key using Caesar Cipher
 def decrypt(string, key):
 	dict, r_dict = get_encoding()
 	keys = list(dict.keys())
